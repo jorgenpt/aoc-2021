@@ -25,6 +25,42 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'day2'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day2",
+                    "--package=aoc-2021"
+                ],
+                "filter": {
+                    "name": "day2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'day2'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day2",
+                    "--package=aoc-2021"
+                ],
+                "filter": {
+                    "name": "day2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'day3'",
             "cargo": {
                 "args": [
