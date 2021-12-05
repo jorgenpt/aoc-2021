@@ -15,7 +15,7 @@ struct Board {
 }
 
 fn main() {
-    let file = File::open("input.txt").unwrap();
+    let file = File::open("day4.txt").unwrap();
     let mut reader = BufReader::new(file);
 
     let mut called_numbers = String::new();

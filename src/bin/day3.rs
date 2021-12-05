@@ -4,7 +4,7 @@ use std::{
 };
 
 fn main() {
-    let file = File::open("input.txt").unwrap();
+    let file = File::open("day3.txt").unwrap();
     let reader = BufReader::new(file);
 
     // Grab an iterator over the lines
