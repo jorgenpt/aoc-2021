@@ -112,16 +112,25 @@ fn main() {
         .filter_map(|x| x)
         .collect::<Vec<_>>();
 
-    'calls: for called_number in called_numbers {
-        for board in &mut boards {
+    let mut first_win = None;
+    let mut last_win = None;
+    for called_number in called_numbers {
+        let mut finished_boards = Vec::new();
+        let mut last_board_score = None;
+        for board_index in 0..boards.len() {
+            let board = &mut boards[board_index];
             'row_loop: for row in 0..board.numbers.len() {
                 for column in 0..board.numbers[row].len() {
                     match board.numbers[row][column] {
                         State::Uncalled(number) if number == called_number => {
                             board.numbers[row][column] = State::Called(number);
                             if board.has_won(row, column) {
-                                println!("winning score: {}", board.get_score(row, column));
-                                break 'calls;
+                                let score = board.get_score(row, column);
+                                if first_win.is_none() {
+                                    first_win = Some(score);
+                                }
+                                finished_boards.push(board_index);
+                                last_board_score = Some(score);
                             }
                             break 'row_loop;
                         }
@@ -130,5 +139,25 @@ fn main() {
                 }
             }
         }
+
+        finished_boards.reverse();
+        for board_index in finished_boards {
+            boards.swap_remove(board_index);
+        }
+
+        if boards.len() == 0 {
+            last_win = last_board_score;
+            break;
+        }
+    }
+
+    match first_win {
+        Some(score) => println!("first winner score: {}", score),
+        _ => {}
+    }
+
+    match last_win {
+        Some(score) => println!("last winner score: {}", score),
+        _ => {}
     }
 }
