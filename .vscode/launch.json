@@ -7,6 +7,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'day1'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day1",
+                    "--package=aoc-2021"
+                ],
+                "filter": {
+                    "name": "day1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'day3'",
             "cargo": {
                 "args": [
