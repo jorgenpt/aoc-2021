@@ -39,6 +39,24 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'day5'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day5",
+                    "--package=aoc-2021"
+                ],
+                "filter": {
+                    "name": "day5",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
