@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.51"
+bit-set = "0.5.2"
+itertools = "0.10.1"
