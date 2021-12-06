@@ -19,16 +19,16 @@ fn main() {
     };
 
     // This is where newly hatched lanternfish live until they're on to the "normal" mature lifecycle
-    let mut immature = [0u32; 2];
+    let mut immature = [0u64; 2];
     // Circular buffer style counter of number of laternfish at each "age"
-    let mut mature = [0u32; 7];
+    let mut mature = [0u64; 7];
 
     // Count up the fish from the input data into their appropriate buckets
     initial_stages.into_iter().for_each(|stage| {
         mature[stage] += 1;
     });
 
-    for current_day in 0..80usize {
+    for current_day in 0..256usize {
         // Treat `immature` as a circular buffer for who is ready to graduate into the mature bucket
         let current_immature_bucket = current_day % 2;
         let graduating_immature = immature[current_immature_bucket];
@@ -38,10 +38,17 @@ fn main() {
         immature[current_immature_bucket] = mature[current_stage];
         // Graduate the previously counted immature into the mature array
         mature[current_stage] += graduating_immature;
+
+        if current_day == 79 {
+            println!(
+                "Total alive after 80 days: {}",
+                mature.iter().sum::<u64>() + immature.iter().sum::<u64>()
+            );
+        }
     }
 
     println!(
-        "Total alive: {}",
-        mature.iter().sum::<u32>() + immature.iter().sum::<u32>()
-    )
+        "Total alive after 256 days: {}",
+        mature.iter().sum::<u64>() + immature.iter().sum::<u64>()
+    );
 }
