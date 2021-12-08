@@ -1,7 +1,5 @@
 use std::{ffi::OsStr, fs::File, io::Read, path::Path};
 
-use itertools::Itertools;
-
 fn main() {
     let mut horizontal_positions = {
         let file_name = Path::new(file!())
