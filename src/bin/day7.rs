@@ -1,5 +1,7 @@
 use std::{ffi::OsStr, fs::File, io::Read, path::Path};
 
+use itertools::Itertools;
+
 fn main() {
     let mut horizontal_positions = {
         let file_name = Path::new(file!())
@@ -30,9 +32,25 @@ fn main() {
     };
 
     let cost = horizontal_positions
-        .into_iter()
+        .iter()
         .map(|x| (x - median).abs())
         .sum::<i32>();
 
     println!("Cost to align to {}: {}", median, cost);
+
+    let brute_force_options =
+        horizontal_positions[0]..=horizontal_positions[horizontal_positions.len() - 1];
+    let costs = brute_force_options.map(|position| {
+        horizontal_positions
+            .iter()
+            .map(|x| {
+                let num_moves = (x - position).abs();
+                (num_moves * (num_moves + 1)) / 2
+            })
+            .sum::<i32>()
+    });
+
+    let min_cost = costs.min().unwrap();
+
+    println!("Cost to align (part 2): {}", min_cost);
 }
