@@ -1,13 +1,10 @@
-use itertools::Itertools;
+use aoc_runner_derive::{aoc, aoc_generator};
 
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-    iter::repeat,
-};
+use itertools::Itertools;
+use std::iter::repeat;
 
 #[derive(Debug)]
-struct Point {
+pub struct Point {
     x: u32,
     y: u32,
 }
@@ -22,7 +19,7 @@ impl Point {
 }
 
 #[derive(Clone, Copy, Debug)]
-enum Slope {
+pub enum Slope {
     Up,
     Down,
 }
@@ -37,7 +34,7 @@ impl Slope {
 }
 
 #[derive(Debug)]
-enum Line {
+pub enum Line {
     Horizontal {
         x_min: u32,
         x_max: u32,
@@ -114,14 +111,12 @@ impl Overlap {
     }
 }
 
-fn main() {
-    let reader = BufReader::new(File::open("day5.txt").unwrap());
-
+#[aoc_generator(day5)]
+pub fn generator(input: &str) -> (u32, u32, Vec<Line>) {
     let mut max_x = 0u32;
     let mut max_y = 0u32;
-    let lines = reader
+    let lines = input
         .lines()
-        .map(Result::unwrap)
         .map(|line| {
             let components = line.split(" -> ").map(|comp| {
                 comp.split(",")
@@ -140,11 +135,16 @@ fn main() {
             }
         })
         .filter_map(|line| line)
-        .collect::<Vec<_>>();
+        .collect();
+
+    (max_x + 1, max_y + 1, lines)
+}
+
+#[aoc(day5, part1)]
+pub fn part1((width, height, lines): &(u32, u32, Vec<Line>)) -> u16 {
+    let (width, height) = (*width, *height);
 
     let mut points = Vec::new();
-    let width = max_x + 1;
-    let height = max_y + 1;
     points.resize((height * width) as usize, Overlap::None);
 
     let mut num_points_with_multiple_overlaps = 0u16;
@@ -159,18 +159,56 @@ fn main() {
 
         match line {
             Line::Horizontal { x_min, x_max, y } => {
-                (x_min..=x_max).zip(repeat(y)).for_each(mark_point)
+                (*x_min..=*x_max).zip(repeat(*y)).for_each(mark_point)
             }
-            Line::Vertical { x, y_min, y_max } => repeat(x).zip(y_min..=y_max).for_each(mark_point),
+            Line::Vertical { x, y_min, y_max } => {
+                repeat(*x).zip(*y_min..=*y_max).for_each(mark_point)
+            }
+            Line::Diagonal {
+                x_min: _,
+                x_max: _,
+                y_start: _,
+                slope: _,
+            } => {}
+        };
+    }
+
+    num_points_with_multiple_overlaps
+}
+
+#[aoc(day5, part2)]
+pub fn part2((width, height, lines): &(u32, u32, Vec<Line>)) -> u16 {
+    let (width, height) = (*width, *height);
+
+    let mut points = Vec::new();
+    points.resize((height * width) as usize, Overlap::None);
+
+    let mut num_points_with_multiple_overlaps = 0u16;
+    for line in lines {
+        let mark_point = |(x, y)| {
+            let coord = (y * width + x) as usize;
+            if let Overlap::One = points[coord] {
+                num_points_with_multiple_overlaps += 1
+            }
+            points[coord].increment();
+        };
+
+        match line {
+            Line::Horizontal { x_min, x_max, y } => {
+                (*x_min..=*x_max).zip(repeat(*y)).for_each(mark_point)
+            }
+            Line::Vertical { x, y_min, y_max } => {
+                repeat(*x).zip(*y_min..=*y_max).for_each(mark_point)
+            }
             Line::Diagonal {
                 x_min,
                 x_max,
                 y_start,
                 slope,
             } => {
-                let points = (x_min..=x_max)
+                let points = (*x_min..=*x_max)
                     .enumerate()
-                    .map(|(step, x)| (x, slope.apply(y_start, step as u32)))
+                    .map(|(step, x)| (x, slope.apply(*y_start, step as u32)))
                     .collect::<Vec<_>>();
 
                 points.into_iter().for_each(mark_point);
@@ -178,8 +216,5 @@ fn main() {
         };
     }
 
-    println!(
-        "Points with multiple thermal vent clouds: {}",
-        num_points_with_multiple_overlaps
-    );
+    num_points_with_multiple_overlaps
 }
