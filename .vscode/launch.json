@@ -21,24 +21,6 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug executable 'day8'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=day8",
-                    "--package=aoc-2021"
-                ],
-                "filter": {
-                    "name": "day8",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
         }
     ]
 }

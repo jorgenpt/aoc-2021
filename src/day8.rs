@@ -1,9 +1,4 @@
-use std::{
-    ffi::OsStr,
-    fs::File,
-    io::{BufRead, BufReader},
-    path::Path,
-};
+use aoc_runner_derive::{aoc, aoc_generator};
 
 use itertools::Itertools;
 
@@ -38,16 +33,16 @@ impl SevenSegment for Vec<u8> {
     }
 }
 
-fn main() {
-    let notes = {
-        let file_name = Path::new(file!())
-            .file_stem()
-            .map(OsStr::to_str)
-            .flatten()
-            .unwrap();
-        let reader = BufReader::new(File::open(format!("{}.txt", file_name)).unwrap());
+pub struct Note {
+    digits: Vec<u8>,
+    output: Vec<u8>,
+}
 
-        reader.lines().flatten().map(|line| {
+#[aoc_generator(day8)]
+pub fn generator(input: &str) -> Vec<Note> {
+    input
+        .lines()
+        .map(|line| {
             let make_wires = |s: &str| {
                 s.chars()
                     .map(parse_wire)
@@ -57,21 +52,42 @@ fn main() {
             };
 
             let (digits, output) = line.split(" | ").collect_tuple().unwrap();
-            (
-                digits
+            Note {
+                digits: digits
                     .split_whitespace()
                     .map(&make_wires)
                     .collect::<Vec<_>>(),
-                output
+                output: output
                     .split_whitespace()
                     .map(&make_wires)
                     .collect::<Vec<_>>(),
-            )
+            }
         })
-    };
+        .collect()
+}
 
+#[aoc(day8, part1)]
+pub fn part1(notes: &[Note]) -> usize {
+    notes
+        .into_iter()
+        .map(|note| {
+            note.output
+                .iter()
+                .filter_map(|number| match number.count_ones() {
+                    2 | 3 | 4 | 7 => Some(()),
+                    _ => None,
+                })
+                .count()
+        })
+        .sum()
+}
+
+#[aoc(day8, part2)]
+pub fn part2(notes: &[Note]) -> usize {
     let sum_of_all_numbers = notes
-        .map(|(mut digits, output)| {
+        .into_iter()
+        .map(|note| {
+            let mut digits = note.digits.clone();
             let one = digits.find_and_remove_digit(|d| d.count_ones() == 2);
             let seven = digits.find_and_remove_digit(|d| d.count_ones() == 3);
             let four = digits.find_and_remove_digit(|d| d.count_ones() == 4);
@@ -104,13 +120,13 @@ fn main() {
 
             let values = [zero, one, two, three, four, five, six, seven, eight, nine];
 
-            output
-                .into_iter()
-                .map(|number| values.iter().position(|d| *d == number).unwrap())
+            note.output
+                .iter()
+                .map(|number| values.iter().position(|d| d == number).unwrap())
                 .reduce(|number, digit| number * 10 + digit)
                 .unwrap()
         })
         .sum::<usize>();
 
-    println!("Sum of all numbers: {}", sum_of_all_numbers);
+    sum_of_all_numbers
 }
