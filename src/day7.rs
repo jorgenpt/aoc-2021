@@ -1,25 +1,17 @@
-use std::{ffi::OsStr, fs::File, io::Read, path::Path};
+use aoc_runner_derive::{aoc, aoc_generator};
 
-fn main() {
-    let mut horizontal_positions = {
-        let file_name = Path::new(file!())
-            .file_stem()
-            .map(OsStr::to_str)
-            .flatten()
-            .unwrap();
-        let mut file = File::open(format!("{}.txt", file_name)).unwrap();
+#[aoc_generator(day7)]
+pub fn generator(input: &str) -> Vec<i32> {
+    input.split(",").map(str::parse::<i32>).flatten().collect()
+}
 
-        let mut buffer = String::new();
-        file.read_to_string(&mut buffer).unwrap();
-        buffer
-            .split(",")
-            .map(str::parse::<i32>)
-            .flatten()
-            .collect::<Vec<_>>()
+#[aoc(day7, part1)]
+pub fn part1(horizontal_positions: &Vec<i32>) -> i32 {
+    let horizontal_positions = {
+        let mut positions = horizontal_positions.clone();
+        positions.sort();
+        positions
     };
-
-    horizontal_positions.sort();
-    let horizontal_positions = horizontal_positions;
 
     let median = if horizontal_positions.len() % 2 != 0 {
         (horizontal_positions[horizontal_positions.len() / 2]
@@ -34,7 +26,16 @@ fn main() {
         .map(|x| (x - median).abs())
         .sum::<i32>();
 
-    println!("Cost to align to {}: {}", median, cost);
+    cost
+}
+
+#[aoc(day7, part2)]
+pub fn part2(horizontal_positions: &Vec<i32>) -> Option<i32> {
+    let horizontal_positions = {
+        let mut positions = horizontal_positions.clone();
+        positions.sort();
+        positions
+    };
 
     let brute_force_options =
         horizontal_positions[0]..=horizontal_positions[horizontal_positions.len() - 1];
@@ -48,7 +49,5 @@ fn main() {
             .sum::<i32>()
     });
 
-    let min_cost = costs.min().unwrap();
-
-    println!("Cost to align (part 2): {}", min_cost);
+    costs.min()
 }
