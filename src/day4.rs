@@ -1,12 +1,9 @@
+use aoc_runner_derive::{aoc, aoc_generator};
+
 use itertools::Itertools;
 
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-};
-
-#[derive(Debug)]
-enum State {
+#[derive(Copy, Clone, Debug)]
+pub enum State {
     Uncalled(i32),
     Called(i32),
 }
@@ -20,8 +17,8 @@ impl State {
     }
 }
 
-#[derive(Debug)]
-struct Board {
+#[derive(Copy, Clone, Debug)]
+pub struct Board {
     numbers: [[State; 5]; 5],
 }
 
@@ -60,25 +57,21 @@ impl Board {
         }
     }
 }
+#[aoc_generator(day4)]
+pub fn generator(input: &str) -> (Vec<i32>, Vec<Board>) {
+    let mut line_reader = input.lines();
 
-fn main() {
-    let file = File::open("day4.txt").unwrap();
-    let mut reader = BufReader::new(file);
-
-    let mut called_numbers = String::new();
-    reader.read_line(&mut called_numbers).unwrap();
+    let called_numbers = line_reader.next().unwrap();
     let called_numbers = called_numbers
         .trim_end()
         .split(",")
         .map(|n| n.parse::<i32>().unwrap());
 
-    let line_reader = reader.lines();
     let board_reader = line_reader.chunks(6);
-
-    let mut boards = board_reader
+    let boards = board_reader
         .into_iter()
         .map(|board_lines| {
-            let board_lines = board_lines.skip(1).map(Result::unwrap);
+            let board_lines = board_lines.skip(1);
             let mut board_rows = board_lines.map(|line| {
                 let mut numbers = line
                     .split_whitespace()
@@ -109,12 +102,44 @@ fn main() {
                 })
             }
         })
-        .filter_map(|x| x)
-        .collect::<Vec<_>>();
+        .filter_map(|x| x);
 
-    let mut first_win = None;
+    (called_numbers.collect(), boards.collect())
+}
+
+#[aoc(day4, part1)]
+pub fn part1((called_numbers, boards): &(Vec<i32>, Vec<Board>)) -> Option<i32> {
+    let mut boards = boards.clone();
+    for called_number in called_numbers {
+        let called_number = *called_number;
+        for board_index in 0..boards.len() {
+            let board = &mut boards[board_index];
+            'row_loop: for row in 0..board.numbers.len() {
+                for column in 0..board.numbers[row].len() {
+                    match board.numbers[row][column] {
+                        State::Uncalled(number) if number == called_number => {
+                            board.numbers[row][column] = State::Called(number);
+                            if board.has_won(row, column) {
+                                return Some(board.get_score(row, column));
+                            }
+                            break 'row_loop;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
+#[aoc(day4, part2)]
+pub fn part2((called_numbers, boards): &(Vec<i32>, Vec<Board>)) -> Option<i32> {
+    let mut boards = boards.clone();
     let mut last_win = None;
     for called_number in called_numbers {
+        let called_number = *called_number;
         let mut finished_boards = Vec::new();
         let mut last_board_score = None;
         for board_index in 0..boards.len() {
@@ -126,9 +151,6 @@ fn main() {
                             board.numbers[row][column] = State::Called(number);
                             if board.has_won(row, column) {
                                 let score = board.get_score(row, column);
-                                if first_win.is_none() {
-                                    first_win = Some(score);
-                                }
                                 finished_boards.push(board_index);
                                 last_board_score = Some(score);
                             }
@@ -151,13 +173,5 @@ fn main() {
         }
     }
 
-    match first_win {
-        Some(score) => println!("first winner score: {}", score),
-        _ => {}
-    }
-
-    match last_win {
-        Some(score) => println!("last winner score: {}", score),
-        _ => {}
-    }
+    last_win
 }
