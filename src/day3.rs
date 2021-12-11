@@ -1,16 +1,10 @@
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-};
+use aoc_runner_derive::{aoc, aoc_generator};
 
-fn main() {
-    let file = File::open("day3.txt").unwrap();
-    let reader = BufReader::new(file);
-
-    // Grab an iterator over the lines
-    let lines = reader.lines().map(|l| l.unwrap());
+#[aoc_generator(day3)]
+pub fn generator(input: &str) -> Vec<Vec<u8>> {
     // Convert each line to a vector, each digit of the number is one u8
-    let binary_numbers = lines
+    input
+        .lines()
         .map(|l| {
             l.chars()
                 .map(|c| match c {
@@ -20,8 +14,11 @@ fn main() {
                 })
                 .collect::<Vec<_>>()
         })
-        .collect::<Vec<_>>();
+        .collect()
+}
 
+#[aoc(day3, part1)]
+pub fn part1(binary_numbers: &[Vec<u8>]) -> u32 {
     // Sum each line (and count the number of lines) into one big Vec<u32>
     let (num_rows, column_sums) =
         binary_numbers
@@ -60,13 +57,44 @@ fn main() {
     // Since gamma is the opposite of epsilon, just use bitwise NOT on the epsilon number (but mask it
     // so that we only "not" the bits in our input numbers)
     let gamma_rate = !epsilon_rate & number_mask;
-    println!("Power consumption: {}", epsilon_rate * gamma_rate);
+    return epsilon_rate * gamma_rate;
+}
+
+#[aoc(day3, part2)]
+pub fn part2(binary_numbers: &[Vec<u8>]) -> u32 {
+    // Sum each line (and count the number of lines) into one big Vec<u32>
+    let (_, column_sums) =
+        binary_numbers
+            .iter()
+            .fold((0u32, vec![0u32; 0]), |(count, accum), row| {
+                // Length of the longest previous number in the sequence
+                let accumulated_number_bitlength = accum.len();
+                // Make sure that they are the same size -- left pad accum if it's not as long as this row
+                let accum = std::iter::repeat(0)
+                    .take(row.len().saturating_sub(accumulated_number_bitlength))
+                    .chain(accum);
+
+                // Make sure that they are the same size -- left pad row if it's not as long as the previous rows
+                let row = std::iter::repeat(&0u8)
+                    .take(accumulated_number_bitlength.saturating_sub(row.len()))
+                    .chain(row);
+
+                // Join the two iterators into tuples ala ((it1[0], it2[0]), (it1[1], it2[1]), ...) and then add
+                // them elementwise (it1[0] + it2[0], it1[1] + it2[1], ..).
+                let accum = accum
+                    .zip(row)
+                    .map(|(a, r)| a + (*r as u32))
+                    .collect::<Vec<_>>();
+
+                return (count + 1, accum);
+            });
+    let binary_number_length = column_sums.len();
 
     let numbers = binary_numbers
         .into_iter()
         .map(|n| {
             n.into_iter()
-                .fold(0u32, |accum, bit| (accum << 1) | (bit as u32))
+                .fold(0u32, |accum, bit| (accum << 1) | (*bit as u32))
         })
         .collect::<Vec<_>>();
 
@@ -86,7 +114,6 @@ fn main() {
 
         oxygen_rating_candidates.retain(|n| (n >> bit_num) & 1 == retain_bit);
         if oxygen_rating_candidates.len() == 1 {
-            println!("Oxygen rating: {}", oxygen_rating_candidates[0]);
             break;
         }
     }
@@ -107,13 +134,10 @@ fn main() {
 
         co2_rating_candidates.retain(|n| (n >> bit_num) & 1 == retain_bit);
         if co2_rating_candidates.len() == 1 {
-            println!("CO2 rating: {}", co2_rating_candidates[0]);
             break;
         }
     }
 
-    println!(
-        "Life support rating: {}",
-        oxygen_rating_candidates[0] * co2_rating_candidates[0]
-    );
+    // Life support rating
+    return oxygen_rating_candidates[0] * co2_rating_candidates[0];
 }
