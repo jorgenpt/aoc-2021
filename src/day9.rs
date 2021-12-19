@@ -84,3 +84,19 @@ pub fn part1(map: &Map) -> usize {
         })
         .sum()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const INPUT: &str = "2199943210\n\
+                         3987894921\n\
+                         9856789892\n\
+                         8767896789\n\
+                         9899965678";
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(&generator(INPUT)), 15);
+    }
+}
