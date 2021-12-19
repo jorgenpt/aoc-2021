@@ -69,7 +69,7 @@ pub fn part1(map: &Map) -> usize {
                             .any(|neighbor| {
                                 if let Some(height) = map.get_height(x + neighbor.0, y + neighbor.1)
                                 {
-                                    height < point_height
+                                    height <= point_height
                                 } else {
                                     false
                                 }
