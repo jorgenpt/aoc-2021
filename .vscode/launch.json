@@ -7,7 +7,25 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'main'",
+            "name": "Debug tests",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc-2021"
+                ],
+                "filter": {
+                    "name": "aoc-2021",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug full run",
             "cargo": {
                 "args": [
                     "build",
