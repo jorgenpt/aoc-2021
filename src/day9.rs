@@ -1,28 +1,14 @@
+use aoc_2021::AocMap;
 use aoc_runner_derive::{aoc, aoc_generator};
 
 use itertools::{iproduct, Itertools};
 
-#[derive(Debug)]
-pub struct Map {
-    width: u8,
-    height: u8,
-    heights: Vec<u8>,
+trait HeightMap {
+    fn get_num_neighbors(&self, x: i16, y: i16) -> usize;
+    fn get_higher_neighbors(&self, x: i16, y: i16) -> Vec<(i16, i16)>;
 }
 
-impl Map {
-    const NEIGHBORS: [(i16, i16); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-
-    fn get_height(&self, x: i16, y: i16) -> Option<u8> {
-        let (width, height) = (self.width as i16, self.height as i16);
-        if x < 0 || x >= width {
-            None
-        } else if y < 0 || y >= height {
-            None
-        } else {
-            Some(self.heights[(x + y * width) as usize])
-        }
-    }
-
+impl HeightMap for AocMap<u8> {
     fn get_num_neighbors(&self, x: i16, y: i16) -> usize {
         let x_border = x == 0 || x == (self.width as i16) - 1;
         let y_border = y == 0 || y == (self.height as i16) - 1;
@@ -30,13 +16,13 @@ impl Map {
     }
 
     fn get_higher_neighbors(&self, x: i16, y: i16) -> Vec<(i16, i16)> {
-        let point_height = self.get_height(x, y);
+        let point_height = self.get_value(x, y);
         if let Some(point_height) = point_height {
             Self::NEIGHBORS
                 .into_iter()
                 .filter_map(|neighbor| {
                     let (neighbor_x, neighbor_y) = (x + neighbor.0, y + neighbor.1);
-                    if let Some(height) = self.get_height(neighbor_x, neighbor_y) {
+                    if let Some(height) = self.get_value(neighbor_x, neighbor_y) {
                         if height > point_height {
                             Some((neighbor_x, neighbor_y))
                         } else {
@@ -54,39 +40,15 @@ impl Map {
 }
 
 #[aoc_generator(day9)]
-pub fn generator(input: &str) -> Map {
-    let mut width = None;
-    let mut map = vec![];
-    input
-        .lines()
-        .map(|line| {
-            line.chars()
-                .filter_map(|c| match c {
-                    c if c >= '0' && c <= '9' => Some(c as u8 - '0' as u8),
-                    _ => None,
-                })
-                .collect::<Vec<_>>()
-        })
-        .for_each(|mut line| {
-            if let Some(width) = width {
-                assert_eq!(width, line.len());
-            } else {
-                width = Some(line.len());
-            }
-
-            map.append(&mut line);
-        });
-
-    let width = width.unwrap();
-    Map {
-        width: width as u8,
-        height: (map.len() / width) as u8,
-        heights: map,
-    }
+pub fn generator(input: &str) -> AocMap<u8> {
+    AocMap::<u8>::generator(input, |c| match c {
+        c if c >= '0' && c <= '9' => Some(c as u8 - '0' as u8),
+        _ => None,
+    })
 }
 
 #[aoc(day9, part1)]
-pub fn part1(map: &Map) -> usize {
+pub fn part1(map: &AocMap<u8>) -> usize {
     (0..map.height)
         .map(|y| {
             let y = y as i16;
@@ -95,9 +57,9 @@ pub fn part1(map: &Map) -> usize {
                 .map(|x| {
                     let x = x as i16;
 
-                    let point_height = map.get_height(x, y).unwrap();
-                    let lower_neighbors = Map::NEIGHBORS.into_iter().any(|neighbor| {
-                        if let Some(height) = map.get_height(x + neighbor.0, y + neighbor.1) {
+                    let point_height = map.get_value(x, y).unwrap();
+                    let lower_neighbors = AocMap::<u8>::NEIGHBORS.into_iter().any(|neighbor| {
+                        if let Some(height) = map.get_value(x + neighbor.0, y + neighbor.1) {
                             height <= point_height
                         } else {
                             false
@@ -115,7 +77,7 @@ pub fn part1(map: &Map) -> usize {
 }
 
 #[aoc(day9, part2)]
-pub fn part2(map: &Map) -> usize {
+pub fn part2(map: &AocMap<u8>) -> usize {
     let basins = iproduct!(0..map.height, 0..map.width)
         .map(|(y, x)| {
             let (x, y) = (x as i16, y as i16);
@@ -129,7 +91,7 @@ pub fn part2(map: &Map) -> usize {
                         continue;
                     }
 
-                    if map.get_height(neighbor.0, neighbor.1).unwrap() == 9 {
+                    if map.get_value(neighbor.0, neighbor.1).unwrap() == 9 {
                         continue;
                     }
 
