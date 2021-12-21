@@ -1,7 +1,7 @@
 use aoc_2021::AocMap;
 use aoc_runner_derive::{aoc, aoc_generator};
 
-use itertools::{iproduct, Itertools};
+use itertools::Itertools;
 
 trait HeightMap {
     fn get_num_neighbors(&self, x: i16, y: i16) -> usize;
@@ -12,13 +12,13 @@ impl HeightMap for AocMap<u8> {
     fn get_num_neighbors(&self, x: i16, y: i16) -> usize {
         let x_border = x == 0 || x == (self.width as i16) - 1;
         let y_border = y == 0 || y == (self.height as i16) - 1;
-        Self::NEIGHBORS.len() - x_border as usize - y_border as usize
+        Self::PLUS_NEIGHBORS.len() - x_border as usize - y_border as usize
     }
 
     fn get_higher_neighbors(&self, x: i16, y: i16) -> Vec<(i16, i16)> {
         let point_height = self.get_value(x, y);
         if let Some(point_height) = point_height {
-            Self::NEIGHBORS
+            Self::PLUS_NEIGHBORS
                 .into_iter()
                 .filter_map(|neighbor| {
                     let (neighbor_x, neighbor_y) = (x + neighbor.0, y + neighbor.1);
@@ -58,13 +58,14 @@ pub fn part1(map: &AocMap<u8>) -> usize {
                     let x = x as i16;
 
                     let point_height = map.get_value(x, y).unwrap();
-                    let lower_neighbors = AocMap::<u8>::NEIGHBORS.into_iter().any(|neighbor| {
-                        if let Some(height) = map.get_value(x + neighbor.0, y + neighbor.1) {
-                            height <= point_height
-                        } else {
-                            false
-                        }
-                    });
+                    let lower_neighbors =
+                        AocMap::<u8>::PLUS_NEIGHBORS.into_iter().any(|neighbor| {
+                            if let Some(height) = map.get_value(x + neighbor.0, y + neighbor.1) {
+                                height <= point_height
+                            } else {
+                                false
+                            }
+                        });
                     if lower_neighbors {
                         0
                     } else {
@@ -78,9 +79,9 @@ pub fn part1(map: &AocMap<u8>) -> usize {
 
 #[aoc(day9, part2)]
 pub fn part2(map: &AocMap<u8>) -> usize {
-    let basins = iproduct!(0..map.height, 0..map.width)
+    let basins = map
+        .coordinates()
         .map(|(y, x)| {
-            let (x, y) = (x as i16, y as i16);
             let mut higher_neighbors = map.get_higher_neighbors(x, y);
             if higher_neighbors.len() != map.get_num_neighbors(x, y) {
                 0
