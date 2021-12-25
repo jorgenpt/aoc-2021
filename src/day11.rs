@@ -44,10 +44,10 @@ impl EnergyMapSimulate for EnergyMap {
         loop {
             let flashes = self
                 .coordinates()
-                .filter_map(|(x, y)| {
-                    if let EnergyLevel::Charging(l) = self.get_value(x, y).unwrap() {
+                .filter_map(|p| {
+                    if let EnergyLevel::Charging(l) = self.get(p) {
                         if l > 9 {
-                            Some((x, y))
+                            Some(p)
                         } else {
                             None
                         }
@@ -59,12 +59,13 @@ impl EnergyMapSimulate for EnergyMap {
 
             if flashes.len() > 0 {
                 num_flashes += flashes.len();
-                for (flash_x, flash_y) in flashes {
-                    self.set_value(flash_x, flash_y, EnergyLevel::Discharged);
-                    for (offset_x, offset_y) in EnergyMap::ALL_NEIGHBORS {
-                        let (x, y) = (flash_x + offset_x, flash_y + offset_y);
-                        if let Some(EnergyLevel::Charging(l)) = self.get_value(x, y) {
-                            self.set_value(x, y, EnergyLevel::Charging(l + 1));
+                for flash in flashes {
+                    self.set(flash, EnergyLevel::Discharged);
+                    for offset in EnergyMap::ALL_NEIGHBORS {
+                        if let Some(p) = self.get_relative(flash, offset) {
+                            if let EnergyLevel::Charging(l) = self.get(p) {
+                                self.set(p, EnergyLevel::Charging(l + 1));
+                            }
                         }
                     }
                 }
@@ -78,7 +79,7 @@ impl EnergyMapSimulate for EnergyMap {
 
 #[aoc_generator(day11)]
 pub fn generator(input: &str) -> EnergyMap {
-    AocMap::<EnergyLevel>::generator(input, |c| match c {
+    AocMap::<EnergyLevel>::from_render(input, |c| match c {
         c if c >= '0' && c <= '9' => Some(EnergyLevel::Charging(c as u8 - '0' as u8)),
         _ => None,
     })
